@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>sorry :(</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;700&family=Caveat:wght@600;700&display=swap');
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html, body{
+    width:100%; height:100%;
+    background: linear-gradient(160deg, #ffe9ec 0%, #ffd7e0 40%, #ffc9d4 100%);
+    font-family:'Quicksand', sans-serif;
+    overflow:hidden;
+  }
+
+  #css3d-container{
+    position:fixed; inset:0; z-index:2;
+    perspective: 1200px;
+  }
+  #css3d-container > div{ /* the renderer's internal element */
+    width:100%; height:100%;
+  }
+
+  .floaty{
+    position:fixed;
+    font-size:1.6rem;
+    opacity:0.55;
+    pointer-events:none;
+    animation: floatUp linear infinite;
+    z-index:0;
+  }
+  @keyframes floatUp{
+    0%{ transform: translateY(110vh) rotate(0deg); opacity:0; }
+    10%{ opacity:0.6; }
+    90%{ opacity:0.6; }
+    100%{ transform: translateY(-10vh) rotate(20deg); opacity:0; }
+  }
+
+  .overlay-top{
+    position:fixed;
+    top:0; left:0; right:0;
+    text-align:center;
+    padding: 2.2rem 1.5rem 0.5rem;
+    z-index:3;
+    pointer-events:none;
+  }
+  .overlay-top h1{
+    font-family:'Caveat', cursive;
+    font-size:clamp(2.4rem, 7vw, 3.6rem);
+    color:#c2185b;
+    text-shadow: 2px 2px 0 rgba(255,255,255,0.7);
+  }
+  .overlay-top p{
+    color:#8a4a5c;
+    font-weight:500;
+    margin-top:0.3rem;
+    font-size:0.95rem;
+  }
+
+  .center-message{
+    position:fixed;
+    bottom:1.6rem;
+    left:50%;
+    transform: translateX(-50%);
+    max-width: 560px;
+    width: 90%;
+    text-align:center;
+    background: rgba(255,255,255,0.78);
+    backdrop-filter: blur(8px);
+    border-radius: 26px;
+    padding: 1.4rem 1.6rem;
+    z-index:3;
+    box-shadow: 0 12px 40px rgba(194,24,91,0.15);
+    pointer-events:none;
+  }
+  .center-message .big{
+    font-family:'Caveat', cursive;
+    font-size: clamp(1.4rem, 4vw, 2rem);
+    color:#b3164a;
+    line-height:1.3;
+  }
+  .center-message .small{
+    margin-top:0.5rem;
+    color:#8a4a5c;
+    font-size:0.85rem;
+    font-weight:500;
+    line-height:1.4;
+  }
+
+  .loading{
+    position:fixed; inset:0;
+    display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(160deg, #ffe9ec 0%, #ffd7e0 40%, #ffc9d4 100%);
+    z-index:10;
+    font-family:'Caveat', cursive;
+    font-size:1.8rem;
+    color:#c2185b;
+    transition: opacity 0.6s ease;
+  }
+  .hidden{ opacity:0; pointer-events:none; }
+
+  /* the cat card itself, rendered as a real DOM element in 3D space */
+  .cat-card{
+    width: 230px;
+    height: 300px;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 45px rgba(194,24,91,0.35);
+    padding: 12px 12px 14px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    user-select:none;
+  }
+  .cat-card img{
+    width: 100%;
+    height: 235px;
+    object-fit: cover;
+    border-radius: 14px;
+    background: #f2c9d2;
+    display:block;
+  }
+  .cat-card .sign{
+    margin-top: 10px;
+    font-family:'Caveat', cursive;
+    font-style:italic;
+    font-size: 1.25rem;
+    color:#a13a55;
+    text-align:center;
+    line-height:1.15;
+    border-top: 2px dashed #f3a6bb;
+    padding-top: 8px;
+    width:100%;
+  }
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">gathering the cats... 🐾</div>
+
+<div id="floaties"></div>
+<div id="css3d-container"></div>
+
+<div class="overlay-top">
+  <h1>i'm sorry 🐾</h1>
+  <p>the whole crew agrees — it won't happen again</p>
+</div>
+
+<div class="center-message">
+  <div class="big">I'm sorry. I really mean it —<br>I won't make that mistake again.</div>
+  <div class="small">I know saying it isn't the same as showing it, but I wanted you to know it weighs on me too. Take whatever time you need — I'm here when you're ready.</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.150.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.150.1/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { CSS3DRenderer, CSS3DObject } from 'three/addons/renderers/CSS3DRenderer.js';
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 1, 5000);
+  camera.position.z = 900;
+
+  const renderer = new CSS3DRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.getElementById('css3d-container').appendChild(renderer.domElement);
+
+  const signMessages = [
+    "\"I'll actually listen next time\"",
+    "\"no more repeat mistakes, promise\"",
+    "\"forgive him? pretty please?\"",
+    "\"we're watching him now\""
+  ];
+
+  const positions3D = [
+    { x: -520, y: 70,  z: -20 },
+    { x: -175, y: -70, z: 30 },
+    { x: 175,  y: 70,  z: -30 },
+    { x: 520,  y: -70, z: 20 },
+  ];
+
+  // Reliable real-cat image sources with fallbacks
+  async function getCatUrl(){
+    try{
+      const res = await fetch('https://api.thecatapi.com/v1/images/search?size=med');
+      const data = await res.json();
+      if(data && data[0] && data[0].url) return data[0].url;
+    }catch(e){ /* fall through */ }
+    // fallback: cataas.com direct random cat photo
+    return `https://cataas.com/cat?width=500&height=500&t=${Date.now()}${Math.random()}`;
+  }
+
+  const cards = [];
+  let loadedCount = 0;
+  const totalCards = positions3D.length;
+
+  function markLoaded(){
+    loadedCount++;
+    if(loadedCount >= totalCards){
+      document.getElementById('loading').classList.add('hidden');
+    }
+  }
+
+  async function createCard(index){
+    const pos = positions3D[index];
+
+    const el = document.createElement('div');
+    el.className = 'cat-card';
+
+    const img = document.createElement('img');
+    img.alt = 'a cat';
+    img.referrerPolicy = 'no-referrer';
+
+    const sign = document.createElement('div');
+    sign.className = 'sign';
+    sign.textContent = signMessages[index];
+
+    el.appendChild(img);
+    el.appendChild(sign);
+
+    const url = await getCatUrl();
+    img.src = url;
+
+    img.onload = markLoaded;
+    img.onerror = () => {
+      // last-resort fallback image
+      img.onerror = markLoaded;
+      img.src = `https://cataas.com/cat?width=500&height=500&fallback=${index}`;
+    };
+
+    const obj = new CSS3DObject(el);
+    obj.position.set(pos.x, pos.y, pos.z);
+    obj.userData.baseY = pos.y;
+    obj.userData.bobSpeed = 0.5 + Math.random()*0.4;
+    obj.userData.bobOffset = Math.random()*Math.PI*2;
+    obj.userData.baseRotY = (Math.random()-0.5)*0.35;
+
+    scene.add(obj);
+    cards.push(obj);
+  }
+
+  for(let i=0;i<totalCards;i++) createCard(i);
+  // safety timeout in case network is slow/blocked
+  setTimeout(() => document.getElementById('loading').classList.add('hidden'), 6000);
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener('mousemove', (e) => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  });
+
+  const clock = new THREE.Clock();
+
+  function animate(){
+    requestAnimationFrame(animate);
+    const t = clock.getElapsedTime();
+
+    cards.forEach((obj) => {
+      obj.position.y = obj.userData.baseY + Math.sin(t*obj.userData.bobSpeed + obj.userData.bobOffset) * 18;
+      obj.rotation.y = obj.userData.baseRotY + Math.sin(t*0.3 + obj.userData.bobOffset) * 0.08 + mouseX*0.1;
+      obj.rotation.x = mouseY * -0.06;
+    });
+
+    camera.position.x += (mouseX*50 - camera.position.x) * 0.03;
+    camera.position.y += (-mouseY*30 - camera.position.y) * 0.03;
+    camera.lookAt(0, 0, 0);
+
+    renderer.render(scene, camera);
+  }
+  animate();
+</script>
+
+<script>
+  // decorative floating hearts/paws (plain CSS, sits behind the cards)
+  const emojis = ['🐾','💗','🌸','✨'];
+  const container = document.getElementById('floaties');
+  for(let i=0;i<22;i++){
+    const el = document.createElement('div');
+    el.className = 'floaty';
+    el.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+    el.style.left = Math.random()*100 + 'vw';
+    el.style.animationDuration = (8 + Math.random()*10) + 's';
+    el.style.animationDelay = (Math.random()*10) + 's';
+    el.style.fontSize = (1.2 + Math.random()*1.4) + 'rem';
+    container.appendChild(el);
+  }
+</script>
+
+</body>
+</html>
